@@ -16,4 +16,11 @@ buildNumber.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
+ 
+# VS Code
+.vscode/
+
+# Eclipse
 .settings/
+*.iml
+.idea/
