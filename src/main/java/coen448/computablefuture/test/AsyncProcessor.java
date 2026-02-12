@@ -54,7 +54,7 @@ public class AsyncProcessor {
 			
 			// Add the future microservice result to the list of futures.
 			futures.add(
-				// If no failure has occured, the microservice will return the message as expected.
+				// If no failure has occurred, the microservice will return the message as expected.
 				service.retrieveAsync(message)
 				.exceptionally(ex -> {
 					// If a failure has occurred, print the error message and return the fallback value.
