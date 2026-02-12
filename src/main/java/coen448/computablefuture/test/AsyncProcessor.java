@@ -22,12 +22,12 @@ public class AsyncProcessor {
 	 * <br>
 	 * 
 	 * @param services      List of Microservice objects to be processed.
-	 * @param messages      List of messages returned by the microservices.
+	 * @param messages      List of messages to be sent to the corresponding microservices.
 	 * @param fallbackValue The value the microservices should return if failure
 	 *                      occurs. <br>
 	 *                      <br>
-	 * @return A CompletableFuture of type String that lists the concatenated of the
-	 *         messages return by all the microservices.
+	 * @return A CompletableFuture of type String that contains the concatenation of the
+	 *         messages returned by all the microservices.
 	 */
 	public CompletableFuture<String> processAsyncFailSoft(
 			List<Microservice> services, 
