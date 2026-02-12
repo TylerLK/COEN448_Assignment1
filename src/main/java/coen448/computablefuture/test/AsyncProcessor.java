@@ -42,7 +42,7 @@ public class AsyncProcessor {
 		}
 		
 		// Print the number of microservices being processed.
-		System.out.println("[Fail-Soft] Processing" + services.size() + " microservices...");
+		System.out.println("[Fail-Soft] Processing " + services.size() + " microservices...");
 
 		// Create a stream of the future microservice results.
 		List<CompletableFuture<String>> futures = new ArrayList<>();
