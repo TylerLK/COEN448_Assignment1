@@ -69,8 +69,9 @@ public class AsyncProcessor {
 		// Create a barrier for all the microservices to reach using the allOf() method.
 		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
 				.thenApply(v -> {
-				// If no failures have occurred, notify the user.
-				System.out.println("[Fail-Soft] All microservices completed successfully.");
+				// Once all microservices have completed (successfully or with fallback values), notify the user.
+				System.out
+						.println("[Fail-Soft] All microservices completed (successfully or with fallback values).");
 	
 				// Create a single CompletableFuture<String> containing the microservice results.
 				return futures.stream()
