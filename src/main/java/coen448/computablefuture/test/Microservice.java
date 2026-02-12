@@ -1,9 +1,7 @@
 package coen448.computablefuture.test;
 
 
-import java.util.List;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 class Microservice {
     // Successful Microservice Execution

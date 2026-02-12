@@ -1,5 +1,6 @@
 package coen448.computablefuture.test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -32,23 +33,38 @@ public class AsyncProcessor {
 			List<Microservice> services, 
 			List<String> messages,
 			String fallbackValue) {
-
+		
+		// Check if the number of messages received and number of microservices being processed match.
+		if(services.size() != messages.size()) {
+			return CompletableFuture.failedFuture(
+				new IllegalArgumentException("Number of messages received and microservices being processed do not match!")
+			);
+		}
+		
 		// Print the number of microservices being processed.
-		System.out.println("[Fail-Sof] Processing" + services.size() + " microservices...");
+		System.out.println("[Fail-Soft] Processing" + services.size() + " microservices...");
 
-		// Create a stream of the future microservice results, map them to an expected
-		// value,
-		// and collect them into a list.
-		List<CompletableFuture<String>> futures = services.stream()
-				.map(ms -> ms.retrieveAsync("Success")
-						.exceptionally(ex -> {
-							// If a failure has occurred, print the error message and return the fallback value.
-							System.out.println("[Fail-Soft] Failure Detected: " + ex.getMessage());
+		// Create a stream of the future microservice results.
+		List<CompletableFuture<String>> futures = new ArrayList<>();
+		
+		// Loop through the received messages, adding them to the list of futures.
+		for(int i = 0; i < messages.size(); i++) {
+			Microservice service = services.get(i);
+			String message = messages.get(i);
+			
+			// Add the future microservice result to the list of futures.
+			futures.add(
+				// If no failure has occured, the microservice will return the message as expected.
+				service.retrieveAsync(message)
+				.exceptionally(ex -> {
+					// If a failure has occurred, print the error message and return the fallback value.
+					System.out.println("[Fail-Soft] Failure Detected: " + ex.getMessage());
 
-							return fallbackValue;
-						})
-				)
-				.collect(Collectors.toList());
+					return fallbackValue;
+				})	
+			);
+			
+		}
 
 		// Create a barrier for all the microservices to reach using the allOf() method.
 		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
