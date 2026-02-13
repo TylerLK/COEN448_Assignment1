@@ -150,7 +150,7 @@ public class AsyncProcessorTest {
     }
     
     @Test
-    @DisplayName("[Fail-Soft] Multiple Microservice Failures")
+    @DisplayName("[Fail-Soft] All Microservice Failures")
     public void testProcessAsyncFailSoftAllFailure() throws ExecutionException, InterruptedException {
     	// Create a list of microservices to be processed.  All contain failures.
     	List<Microservice> services = List.of(
