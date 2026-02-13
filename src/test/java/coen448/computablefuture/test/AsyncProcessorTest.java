@@ -176,7 +176,7 @@ public class AsyncProcessorTest {
 	    	CompletableFuture<String> future = processor.processAsyncFailSoft(services, messages, fallbackValue);
 	    	String result = future.get(5, TimeUnit.SECONDS);
 	    	
-	    	// Assertions to compared result to expected value.
+	    	// Assertions to compare result to expected value.
 	    	assertTrue(result.contains(fallbackValue));
 	    	assertFalse(result.contains("MSG-A"));
 	    	assertFalse(result.contains("MSG-B"));
