@@ -6,9 +6,27 @@
 
 ### Definition
 
+As with the other policies, different tasks will be completed concurrently and asynchronously. However, the fail-fast policy is the most sensitive to errors. If any single microservice execution fails, the entire concurrent operation is immediately terminated and an exception is propagated to the caller immediately. Unlike other policies, the caller does not receive any partial or fallback results if a failure occurs; instead, they must handle the resulting error.
+
 ### Examples
 
+1. Microservice A --> Execution Success --> Returns "SUCCESS"
+   Microservice B --> Execution Success --> Returns "SUCCESS"
+   Microservice C --> Execution Success --> Returns "SUCCESS"
+
+   **Result** ------> "SUCCESS, SUCCESS, SUCCESS"
+   <br>
+
+2. Microservice A --> Execution Success --> Returns "SUCCESS"
+   Microservice B --> Execution Failure --> Throws Exception
+   Microservice C --> Execution Success --> (Execution Terminated)
+
+   **Result** ------> **Exception Thrown**
+   <br>
+
 ### Usage
+
+This policy should be used in systems where the results are interdependent, and a single failure renders the entire result set invalid. A typical use is the correctness critical systems where partial results are invalid. By failing fast, the system avoids wasting resources on remaining tasks once it is clear the overall operation cannot succeed.
 
 ---
 
