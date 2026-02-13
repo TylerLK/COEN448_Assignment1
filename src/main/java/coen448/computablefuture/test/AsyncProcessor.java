@@ -178,7 +178,7 @@ public class AsyncProcessor {
 			futures.add(
 					service.retrieveAsync(message)
 					.exceptionally(ex -> {
-						// If a failure has occurred, print the error message and return null (does not fully cancel the other futures)
+						// If a failure occurs, log it and return null, converting this stage to a successful completion whose null result will be ignored later.
 						System.out.println("[Fail-Partial] Failure Detected: " + ex.getMessage());
 						return null;
 					}));
