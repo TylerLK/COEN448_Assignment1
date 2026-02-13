@@ -113,13 +113,31 @@ public class AsyncProcessor {
 			futures.add(services.get(i).retrieveAsync(messages.get(i)));
 		}
 
-		// allof will wait for all but if any future fails, it will fail the resultFuture immediately
-		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-				.thenApply(v -> {
-					System.out.println("[Fail-Fast] All microservices completed successfully.");	
-					return futures.stream()
-							.map(CompletableFuture::join)
-							.collect(Collectors.joining(", "));
+		// Create a future that we can complete immediately upon the first failure.
+		CompletableFuture<String> resultFuture = new CompletableFuture<>();
+
+		// Attach listeners to fail the resultFuture immediately if any single service fails.
+		for (CompletableFuture<String> future : futures) {
+			future.exceptionally(ex -> {
+				// completeExceptionnaly will throw the exception in the resultFuture.
+				System.out.println("[Fail-Fast] Failure Detected: " + ex.getMessage());
+				resultFuture.completeExceptionally(ex);
+				return null;
+			});
+		}
+
+		// Use allOf only to handle the success case. 
+		// If resultFuture was already failed by a listener, resultFuture.complete() will do nothing.
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+				.thenAccept(v -> {
+					if (!resultFuture.isCompletedExceptionally()) {
+						String result = futures.stream()
+								.map(CompletableFuture::join)
+								.collect(Collectors.joining(", "));
+						resultFuture.complete(result);
+					}
 				});
+
+		return resultFuture;
 	}
 }
