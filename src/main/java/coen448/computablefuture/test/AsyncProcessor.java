@@ -6,6 +6,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class AsyncProcessor {
+	/**
+	 * Professor's Predefined code <br>
+	 * <br>
+	 * This method is used to process a list of microservices concurrently.
+	 * @param microservices List of Microservice objects to be processed.
+	 * @return A CompletableFuture of type String that contains the concatenation of the
+	 *         messages returned by all the microservices.
+	 */
 	public CompletableFuture<String> processAsync(List<Microservice> microservices) {
 		List<CompletableFuture<String>> futures = microservices.stream().map(client -> client.retrieveAsync("hello"))
 				.collect(Collectors.toList());
@@ -16,16 +24,12 @@ public class AsyncProcessor {
 	// Failure Semantic Policies
 	/**
 	 * Fail-Soft Policy <br>
-	 * <br>
 	 * All failures are replaced with a pre-defined fallback value. The computation
-	 * never fails. <br>
-	 * <br>
-	 * 
+	 * never fails.
 	 * @param services      List of Microservice objects to be processed.
 	 * @param messages      List of messages to be sent to the corresponding microservices.
 	 * @param fallbackValue The value the microservices should return if failure
-	 *                      occurs. <br>
-	 *                      <br>
+	 *                      occurs.
 	 * @return A CompletableFuture of type String that contains the concatenation of the
 	 *         messages returned by all the microservices.
 	 */
@@ -81,10 +85,17 @@ public class AsyncProcessor {
 	
 
 	// Fail-Fast Policy
+	/**
+	 * Fail-Fast Policy <br>
+	 * If any microservice fails, the entire computation fails immediately.
+	 * @param services List of Microservice objects to be processed.
+	 * @param messages List of messages to be sent to the corresponding microservices.
+	 * @return A CompletableFuture of type String that contains the concatenation of the
+	 *         messages returned by all the microservices.
+	 */
 	public CompletableFuture<String> processAsyncFailFast(
 			List<Microservice> services, 
-			List<String> messages,
-			String fallbackValue) {
+			List<String> messages) {
 
 		// Check if the number of messages received and number of microservices being processed match.
 		if (services.size() != messages.size()) {
