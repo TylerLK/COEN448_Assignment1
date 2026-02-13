@@ -119,7 +119,7 @@ public class AsyncProcessor {
 					System.out.println("[Fail-Fast] All microservices completed successfully.");	
 					return futures.stream()
 							.map(CompletableFuture::join)
-							.collect(Collectors.joining(" | "));
+							.collect(Collectors.joining(", "));
 				});
 	}
 }
