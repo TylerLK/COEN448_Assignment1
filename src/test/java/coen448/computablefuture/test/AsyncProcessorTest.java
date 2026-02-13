@@ -66,7 +66,7 @@ public class AsyncProcessorTest {
 			new Microservice()
 		);
     	
-    	// Create of list of messages to be returned by the microservices.
+    	// Create a list of messages to be returned by the microservices.
     	List<String> messages = List.of(
     			"msg-a",
     			"msg-b",
