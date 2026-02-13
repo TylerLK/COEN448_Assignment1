@@ -32,14 +32,14 @@ As with the other policies, different tasks will be completed concurrently and a
 
 For these examples, the fallback value will be "FALLBACK"
 
-1. MicroService A --> Execution Success --> Returns "SUCCESS"
+1. Microservice A --> Execution Success --> Returns "SUCCESS"
    Microservice B --> Execution Success --> Returns "SUCCESS"
    Microservice C --> Execution Success --> Returns "SUCCESS"
 
    **Result** ------> "SUCCESS, SUCCESS, SUCCESS"
    <br>
 
-2. MicroService A --> Execution Success --> Returns "SUCCESS"
+2. Microservice A --> Execution Success --> Returns "SUCCESS"
    Microservice B --> Execution Failure --> Returns "FALLBACK"
    Microservice C --> Execution Success --> Returns "SUCCESS"
 
