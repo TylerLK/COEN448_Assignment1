@@ -82,15 +82,11 @@ public class AsyncProcessor {
 	// Fail-Partial Policy
 	/**
 	 * Fail-Partial Policy <br>
-	 * <br>
 	 * All failures are ignored. The computation returns only the successful
-	 * results. <br>
-	 * <br>
-	 * 
+	 * results.
 	 * @param services List of Microservice objects to be processed.
 	 * @param messages List of messages to be sent to the corresponding
-	 *                 microservices. <br>
-	 *                 <br>
+	 *                 microservices.
 	 * @return A CompletableFuture of type String that contains the concatenation of
 	 *         the messages returned by all the successful microservices.
 	 */
