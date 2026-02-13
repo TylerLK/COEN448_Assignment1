@@ -30,7 +30,7 @@ As with the other policies, different tasks will be completed concurrently and a
 
 ### Examples
 
-For these example, the fallback value will be "FALLBACK"
+For these examples, the fallback value will be "FALLBACK"
 
 1. MicroService A --> Execution Success --> Returns "SUCCESS"
    Microservice B --> Execution Success --> Returns "SUCCESS"
