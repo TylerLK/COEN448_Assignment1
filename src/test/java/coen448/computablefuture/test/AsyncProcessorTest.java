@@ -67,7 +67,7 @@ public class AsyncProcessorTest {
 			new Microservice()
 		);
     	
-    	// Create of list of messages to be returned by the microservices.
+    	// Create a list of messages to be returned by the microservices.
     	List<String> messages = List.of(
     			"msg-a",
     			"msg-b",
@@ -126,7 +126,7 @@ public class AsyncProcessorTest {
     	CompletableFuture<String> future = processor.processAsyncFailSoft(services, messages, fallbackValue);
     	String result = future.get(5, TimeUnit.SECONDS);
     	
-    	// Assertions to compared result to expected value.
+    	// Assertions to compare result to expected value.
     	assertTrue(result.contains(fallbackValue));
     	assertFalse(result.contains("MSG-A"));
     	assertTrue(result.contains("MSG-B"));
@@ -179,7 +179,7 @@ public class AsyncProcessorTest {
 	    	CompletableFuture<String> future = processor.processAsyncFailSoft(services, messages, fallbackValue);
 	    	String result = future.get(5, TimeUnit.SECONDS);
 	    	
-	    	// Assertions to compared result to expected value.
+	    	// Assertions to compare result to expected value.
 	    	assertTrue(result.contains(fallbackValue));
 	    	assertFalse(result.contains("MSG-A"));
 	    	assertFalse(result.contains("MSG-B"));
