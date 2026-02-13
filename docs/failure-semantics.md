@@ -40,7 +40,7 @@ For these examples, the fallback value will be "FALLBACK"
    <br>
 
 2. MicroService A --> Execution Success --> Returns "SUCCESS"
-   Microservice B --> Execution Failure --> Returns Fallback Value
+   Microservice B --> Execution Failure --> Returns "FALLBACK"
    Microservice C --> Execution Success --> Returns "SUCCESS"
 
    **Result** ------> "SUCCESS, FALLBACK, SUCCESS"  
