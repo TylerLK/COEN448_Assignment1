@@ -37,7 +37,7 @@ public class AsyncProcessorTest {
     // Fail-Soft Policy Tests    
     @Test
     @DisplayName("[Fail-Soft] All Microservices are Successful")
-    public void testProcessAsyncFailSoftAllSuccess() throws ExecutionException, InterruptedException {
+    public void testProcessAsyncFailSoftAllSuccess() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.
     	List<Microservice> services = List.of(
     		new Microservice(),
@@ -45,7 +45,7 @@ public class AsyncProcessorTest {
     		new Microservice()
     	);
     	
-    	// Create of list of messages to be returned by the microservices.
+    	// Create a list of messages to be returned by the microservices.
     	List<String> messages = List.of(
     			"msg-a",
     			"msg-b",
@@ -57,7 +57,7 @@ public class AsyncProcessorTest {
     	
     	// Call the processAsyncFailSoft method to process the microservices.
     	CompletableFuture<String> future = processor.processAsyncFailSoft(services, messages, fallbackValue);
-    	String result = future.get();
+    	String result = future.get(5, TimeUnit.SECONDS);
     	
     	// Assertions to compared result to expected value.
     	assertFalse(result.contains(fallbackValue));
@@ -69,7 +69,7 @@ public class AsyncProcessorTest {
     
     @Test
     @DisplayName("[Fail-Soft] Single Microservice Failure")
-    public void testProcessAsyncFailSoftSingleFailure() throws ExecutionException, InterruptedException {
+    public void testProcessAsyncFailSoftSingleFailure() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.  One will contain a failure.
     	List<Microservice> services = List.of(
 			new Microservice(),
@@ -95,7 +95,7 @@ public class AsyncProcessorTest {
     	
     	// Call the processAsyncFailSoft method to process the microservices.
     	CompletableFuture<String> future = processor.processAsyncFailSoft(services, messages, fallbackValue);
-    	String result = future.get();
+    	String result = future.get(5, TimeUnit.SECONDS);
     	
     	// Assertions to compared result to expected value.
     	assertTrue(result.contains(fallbackValue));
@@ -107,7 +107,7 @@ public class AsyncProcessorTest {
     
     @Test
     @DisplayName("[Fail-Soft] Multiple Microservice Failures")
-    public void testProcessAsyncFailSoftMultipleFailure() throws ExecutionException, InterruptedException {
+    public void testProcessAsyncFailSoftMultipleFailure() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.  Multiple will contain failures.
     	List<Microservice> services = List.of(
 			new Microservice() {
@@ -139,7 +139,7 @@ public class AsyncProcessorTest {
     	
     	// Call the processAsyncFailSoft method to process the microservices.
     	CompletableFuture<String> future = processor.processAsyncFailSoft(services, messages, fallbackValue);
-    	String result = future.get();
+    	String result = future.get(5, TimeUnit.SECONDS);
     	
     	// Assertions to compared result to expected value.
     	assertTrue(result.contains(fallbackValue));
@@ -150,8 +150,8 @@ public class AsyncProcessorTest {
     }
     
     @Test
-    @DisplayName("[Fail-Soft] Multiple Microservice Failures")
-    public void testProcessAsyncFailSoftAllFailure() throws ExecutionException, InterruptedException {
+    @DisplayName("[Fail-Soft] All Microservice Failures")
+    public void testProcessAsyncFailSoftAllFailure() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.  All contain failures.
     	List<Microservice> services = List.of(
 			new Microservice() {
@@ -191,7 +191,7 @@ public class AsyncProcessorTest {
 	    	
 	    	// Call the processAsyncFailSoft method to process the microservices.
 	    	CompletableFuture<String> future = processor.processAsyncFailSoft(services, messages, fallbackValue);
-	    	String result = future.get();
+	    	String result = future.get(5, TimeUnit.SECONDS);
 	    	
 	    	// Assertions to compared result to expected value.
 	    	assertTrue(result.contains(fallbackValue));
