@@ -6,21 +6,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class AsyncProcessor {
-	/**
-	 * Professor's Predefined code <br>
-	 * <br>
-	 * This method is used to process a list of microservices concurrently.
-	 * @param microservices List of Microservice objects to be processed.
-	 * @return A CompletableFuture of type String that contains the concatenation of the
-	 *         messages returned by all the microservices.
-	 */
-	public CompletableFuture<String> processAsync(List<Microservice> microservices) {
-		List<CompletableFuture<String>> futures = microservices.stream().map(client -> client.retrieveAsync("hello"))
-				.collect(Collectors.toList());
-		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-				.thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.joining(" ")));
-	}
-
 	// Failure Semantic Policies
 	/**
 	 * Fail-Soft Policy <br>
