@@ -47,6 +47,7 @@ public class AsyncProcessorTest {
     	assertTrue(result.contains("MSG-A"));
     	assertTrue(result.contains("MSG-B"));
     	assertTrue(result.contains("MSG-C"));
+    	assertEquals("MSG-A, MSG-B, MSG-C", result);
     	System.out.println("[Fail-Soft] Policy Test Successful: " + result + "\n");
     }
     
@@ -85,6 +86,7 @@ public class AsyncProcessorTest {
     	assertTrue(result.contains("MSG-A"));
     	assertFalse(result.contains("MSG-B"));
     	assertTrue(result.contains("MSG-C"));
+    	assertEquals("MSG-A, FALLBACK, MSG-C", result);
     	System.out.println("[Fail-Soft] Policy Test Successful: " + result + "\n");
     }
     
@@ -129,6 +131,7 @@ public class AsyncProcessorTest {
     	assertFalse(result.contains("MSG-A"));
     	assertTrue(result.contains("MSG-B"));
     	assertFalse(result.contains("MSG-C"));
+    	assertEquals("FALLBACK, MSG-B, FALLBACK", result);
     	System.out.println("[Fail-Soft] Policy Test Successful: " + result + "\n");
     }
     
@@ -181,6 +184,7 @@ public class AsyncProcessorTest {
 	    	assertFalse(result.contains("MSG-A"));
 	    	assertFalse(result.contains("MSG-B"));
 	    	assertFalse(result.contains("MSG-C"));
+	    	assertEquals("FALLBACK, FALLBACK, FALLBACK", result);
 	    	System.out.println("[Fail-Soft] Policy Test Successful: " + result + "\n");
     	});
     }
