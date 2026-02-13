@@ -26,7 +26,7 @@ As with the other policies, different tasks will be completed concurrently and a
 
 ### Usage
 
-This policy should be used in systems where the results are interdependent, and a single failure renders the entire result set invalid. A typical use is the correctness critical systems where partial results are invalid. By failing fast, the system avoids wasting resources on remaining tasks once it is clear the overall operation cannot succeed.
+This policy should be used in systems where the results are interdependent, and a single failure renders the entire result set invalid. A typical use is the correctness-critical systems where partial results are invalid. By failing fast, the system avoids wasting resources on remaining tasks once it is clear the overall operation cannot succeed.
 
 ---
 
