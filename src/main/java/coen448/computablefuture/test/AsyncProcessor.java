@@ -166,7 +166,7 @@ public class AsyncProcessor {
 		// Print the number of microservices being processed.
 		System.out.println("[Fail-Partial] Processing " + services.size() + " microservices...");
 
-		// Create a stream of the future microservice results.
+		// Create a list to hold the future microservice results.
 		List<CompletableFuture<String>> futures = new ArrayList<>();
 
 		// Loop through the received messages, adding them to the list of futures.
