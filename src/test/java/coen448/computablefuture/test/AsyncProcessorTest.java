@@ -6,7 +6,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class AsyncProcessorTest {
 	// Setting up an object of AsyncProcessor to be called in all test cases.
@@ -187,5 +191,185 @@ public class AsyncProcessorTest {
 	    	assertEquals("FALLBACK, FALLBACK, FALLBACK", result);
 	    	System.out.println("[Fail-Soft] Policy Test Successful: " + result + "\n");
     	});
+    }
+    
+    @Test
+    @DisplayName("[Liveness][Fail-Soft] Completes with 12 concurrent microservices")
+    public void testLivenessFailSoftWithManyServices() throws ExecutionException, InterruptedException, TimeoutException {
+    	// Arrange
+    	int serviceCount = 12;
+    	List<Microservice> services = createDelayedServices(serviceCount, Set.of(2, 7), null);
+    	List<String> messages = createMessages(serviceCount);
+    	String fallbackValue = "FALLBACK";
+    	
+    	// Act
+    	CompletableFuture<String> future = processor.processAsyncFailSoft(services, messages, fallbackValue);
+    	String result = future.get(4, TimeUnit.SECONDS);
+    	List<String> tokens = splitResults(result);
+    	
+    	// Assert
+    	assertEquals(serviceCount, tokens.size(), "Fail-Soft must always preserve cardinality.");
+    	assertEquals(2, tokens.stream().filter(fallbackValue::equals).count(), "Fail-Soft must replace failures with fallback.");
+    	assertEquals(10, tokens.stream().filter(token -> token.startsWith("MSG-")).count(), "Fail-Soft must keep successful responses.");
+    	System.out.println("[Liveness][Fail-Soft] Completed within timeout. Result: " + result);
+    }
+    
+    @Test
+    @DisplayName("[Liveness][Fail-Partial] Completes with 14 concurrent microservices")
+    public void testLivenessFailPartialWithManyServices() throws ExecutionException, InterruptedException, TimeoutException {
+    	// Arrange
+    	int serviceCount = 14;
+    	List<Microservice> services = createDelayedServices(serviceCount, Set.of(1, 3, 9), null);
+    	List<String> messages = createMessages(serviceCount);
+    	
+    	// Act
+    	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
+    	String result = future.get(4, TimeUnit.SECONDS);
+    	List<String> tokens = splitResults(result);
+    	
+    	// Assert
+    	assertEquals(serviceCount - 3, tokens.size(), "Fail-Partial must return only successful responses.");
+    	assertFalse(tokens.contains("FALLBACK"), "Fail-Partial must not inject fallback values.");
+    	assertTrue(tokens.stream().allMatch(token -> token.startsWith("MSG-")), "Fail-Partial output should contain only successful uppercased messages.");
+    	System.out.println("[Liveness][Fail-Partial] Completed within timeout. Result count: " + tokens.size());
+    }
+    
+    @Test
+    @DisplayName("[Liveness][Fail-Fast] Fails quickly with 13 concurrent microservices")
+    public void testLivenessFailFastWithManyServices() {
+    	// Arrange
+    	int serviceCount = 13;
+    	List<Microservice> services = createDelayedServices(serviceCount, Set.of(0), null);
+    	List<String> messages = createMessages(serviceCount);
+    	CompletableFuture<String> future = processor.processAsyncFailFast(services, messages);
+    	
+    	// Act
+    	ExecutionException thrown = assertThrows(ExecutionException.class,
+    			() -> future.get(2, TimeUnit.SECONDS),
+    			"Fail-Fast should complete exceptionally without hanging.");
+    	
+    	// Assert
+    	assertNotNull(thrown.getCause());
+    	assertTrue(thrown.getCause().getMessage().contains("Synthetic failure"), "Fail-Fast should expose failure cause.");
+    	System.out.println("[Liveness][Fail-Fast] Failed quickly within timeout. Cause: " + thrown.getCause().getMessage());
+    }
+    
+    @Test
+    @DisplayName("[Nondeterminism] Completion order is observed and logged (not asserted)")
+    public void testNondeterminismCompletionOrderObserved() throws ExecutionException, InterruptedException, TimeoutException {
+    	// Arrange
+    	int serviceCount = 12;
+    	List<String> completionOrder = new CopyOnWriteArrayList<>();
+    	List<Microservice> services = createDelayedServices(serviceCount, Set.of(), completionOrder);
+    	List<String> messages = createMessages(serviceCount);
+    	String fallbackValue = "FALLBACK";
+    	
+    	// Act
+    	CompletableFuture<String> future = processor.processAsyncFailSoft(services, messages, fallbackValue);
+    	String result = future.get(4, TimeUnit.SECONDS);
+    	
+    	// Assert
+    	assertEquals(serviceCount, completionOrder.size(), "All microservices should be observed as completed.");
+    	assertEquals(serviceCount, splitResults(result).size(), "Fail-Soft still preserves cardinality.");
+    	System.out.println("[Nondeterminism] Input order     : " + messages);
+    	System.out.println("[Nondeterminism] Completion order: " + completionOrder);
+    	System.out.println("[Nondeterminism] Aggregated result: " + result);
+    }
+    
+    /**
+     * Creates synthetic asynchronous microservices with staggered delays and optional failures.
+     * 
+     * @param count total number of microservices to create.
+     * @param failingIndices service indices that should fail.
+     * @param completionOrder optional thread-safe sink used to record completion order.
+     * @return list of configured microservice instances.
+     */
+    private List<Microservice> createDelayedServices(int count, Set<Integer> failingIndices, List<String> completionOrder) {
+    	return IntStream.range(0, count)
+    			.mapToObj(index -> {
+    				long delayMs = 40L + ((count - index) * 10L);
+    				boolean shouldFail = failingIndices.contains(index);
+    				String serviceId = "svc-" + index;
+    				return new ControlledDelayMicroservice(serviceId, delayMs, shouldFail, completionOrder);
+    			})
+    			.collect(Collectors.toList());
+    }
+    
+    /**
+     * Creates a list of request messages in ascending order.
+     * 
+     * @param count total number of messages.
+     * @return ordered message list (e.g., msg-0, msg-1, ...).
+     */
+    private List<String> createMessages(int count) {
+    	return IntStream.range(0, count)
+    			.mapToObj(i -> "msg-" + i)
+    			.collect(Collectors.toList());
+    }
+    
+    /**
+     * Splits a comma-delimited aggregate result into tokens.
+     * 
+     * @param result aggregated processor output.
+     * @return trimmed list of result tokens.
+     */
+    private List<String> splitResults(String result) {
+    	if (result == null || result.isBlank()) {
+    		return List.of();
+    	}
+    	return List.of(result.split(", "))
+    			.stream()
+    			.map(String::trim)
+    			.collect(Collectors.toList());
+    }
+    
+    /**
+     * Test helper microservice that supports controlled delay, deterministic failure,
+     * and optional completion-order tracing.
+     */
+    private static class ControlledDelayMicroservice extends Microservice {
+    	private static final AtomicInteger FAILURE_COUNTER = new AtomicInteger(0);
+    	
+    	private final String serviceId;
+    	private final long delayMs;
+    	private final boolean shouldFail;
+    	private final List<String> completionOrder;
+    	
+    	/**
+    	 * Creates a synthetic microservice with configurable behavior.
+    	 * 
+    	 * @param serviceId service identifier used for logs and completion tracking.
+    	 * @param delayMs artificial execution delay in milliseconds.
+    	 * @param shouldFail whether this microservice should fail.
+    	 * @param completionOrder optional thread-safe completion-order sink.
+    	 */
+    	ControlledDelayMicroservice(String serviceId, long delayMs, boolean shouldFail, List<String> completionOrder) {
+    		this.serviceId = serviceId;
+    		this.delayMs = delayMs;
+    		this.shouldFail = shouldFail;
+    		this.completionOrder = completionOrder;
+    	}
+    	
+    	@Override
+    	public CompletableFuture<String> retrieveAsync(String input) {
+    		return CompletableFuture.supplyAsync(() -> {
+    			try {
+    				Thread.sleep(delayMs);
+    			} catch (InterruptedException e) {
+    				Thread.currentThread().interrupt();
+    				throw new RuntimeException("Interrupted: " + serviceId, e);
+    			}
+    			
+    			if (shouldFail) {
+    				int failureId = FAILURE_COUNTER.incrementAndGet();
+    				throw new RuntimeException("Synthetic failure #" + failureId + " from " + serviceId);
+    			}
+    			return input.toUpperCase();
+    		}).whenComplete((value, ex) -> {
+    			if (completionOrder != null) {
+    				completionOrder.add(serviceId);
+    			}
+    		});
+    	}
     }
 }
