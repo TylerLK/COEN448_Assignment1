@@ -43,7 +43,7 @@ public class AsyncProcessorTest {
     	CompletableFuture<String> future = processor.processAsyncFailFast(services, messages);
     	String result = future.get(5, TimeUnit.SECONDS);
     	
-    	// Assertions to compared result to expected value.
+    	// Assertions to compare result to expected value.
     	assertTrue(result.contains("MSG-A"));
     	assertTrue(result.contains("MSG-B"));
     	assertTrue(result.contains("MSG-C"));
@@ -105,7 +105,7 @@ public class AsyncProcessorTest {
 			}
 		);
     	
-    	// Create of list of messages to be returned by the microservices.
+    	// Create a list of messages to be returned by the microservices.
     	List<String> messages = List.of(
     			"msg-a",
     			"msg-b",
@@ -149,7 +149,7 @@ public class AsyncProcessorTest {
 			}
 		);
     	
-    	// Create of list of messages to be returned by the microservices.
+    	// Create a list of messages to be returned by the microservices.
     	List<String> messages = List.of(
     			"msg-a",
     			"msg-b",
@@ -187,6 +187,7 @@ public class AsyncProcessorTest {
     	// Assertions to compare result to expected value.
     	ExecutionException ex = assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
     	assertTrue(ex.getCause() instanceof IllegalArgumentException);
+    	System.out.println("[Fail-Fast] Size Mismatch Between Services and Messages - Test Successful: " + ex.getCause().getMessage() + "\n");
 	}
 	
 	// Fail-Partial Policy Tests
