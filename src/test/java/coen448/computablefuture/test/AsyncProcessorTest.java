@@ -191,6 +191,186 @@ public class AsyncProcessorTest {
 	}
 	
 	// Fail-Partial Policy Tests
+	@Test
+    @DisplayName("[Fail-Partial] All Microservices are Successful")
+    public void testProcessAsyncFailPartialAllSuccess() throws ExecutionException, InterruptedException, TimeoutException {
+    	// Create a list of microservices to be processed.
+    	List<Microservice> services = List.of(
+    		new Microservice(),
+    		new Microservice(),
+    		new Microservice()
+    	);
+    	
+    	// Create a list of messages to be returned by the microservices.
+    	List<String> messages = List.of(
+    			"msg-a",
+    			"msg-b",
+    			"msg-c"
+    	);
+    	
+    	// Call the processAsyncFailSoft method to process the microservices.
+    	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
+    	String result = future.get(5, TimeUnit.SECONDS);
+    	
+    	// Assertions to compare result to expected value.
+    	assertTrue(result.contains("MSG-A"));
+    	assertTrue(result.contains("MSG-B"));
+    	assertTrue(result.contains("MSG-C"));
+    	assertEquals("MSG-A, MSG-B, MSG-C", result);
+    	System.out.println("[Fail-Partial] All Microservices are Successful - Test Successful: " + result + "\n");
+    }
+    
+    @Test
+    @DisplayName("[Fail-Partial] Single Microservice Failure")
+    public void testProcessAsyncFailPartialSingleFailure() throws ExecutionException, InterruptedException, TimeoutException {
+    	// Create a list of microservices to be processed.  One will contain a failure.
+    	List<Microservice> services = List.of(
+			new Microservice(),
+			new Microservice() {
+				// Override the successful microservice behaviour to return a failure instead.
+				@Override
+				public CompletableFuture<String> retrieveAsync(String input) {
+					return retrieveAsyncFail("Microservice B Failure");
+				}
+			},
+			new Microservice()
+		);
+    	
+    	// Create a list of messages to be returned by the microservices.
+    	List<String> messages = List.of(
+    			"msg-a",
+    			"msg-b",
+    			"msg-c"
+    	);
+    	
+    	// Call the processAsyncFailSoft method to process the microservices.
+    	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
+    	String result = future.get(5, TimeUnit.SECONDS);
+    	
+    	// Assertions to compare result to expected value.
+    	assertTrue(result.contains("MSG-A"));
+    	assertFalse(result.contains("MSG-B"));
+    	assertTrue(result.contains("MSG-C"));
+    	assertEquals("MSG-A, MSG-C", result);
+    	System.out.println("[Fail-Partial] Single Microservice Failure - Test Successful: " + result + "\n");
+    }
+    
+    @Test
+    @DisplayName("[Fail-Partial] Multiple Microservice Failures")
+    public void testProcessAsyncFailPartialMultipleFailure() throws ExecutionException, InterruptedException, TimeoutException {
+    	// Create a list of microservices to be processed.  Multiple will contain failures.
+    	List<Microservice> services = List.of(
+			new Microservice() {
+				// Override the successful microservice behaviour to return a failure instead.
+				@Override
+				public CompletableFuture<String> retrieveAsync(String input) {
+					return retrieveAsyncFail("Microservice A Failure");
+				}
+			},
+			new Microservice(),
+			new Microservice() {
+				// Override the successful microservice behaviour to return a failure instead.
+				@Override
+				public CompletableFuture<String> retrieveAsync(String input) {
+					return retrieveAsyncFail("Microservice C Failure");
+				}
+			}
+		);
+    	
+    	// Create of list of messages to be returned by the microservices.
+    	List<String> messages = List.of(
+    			"msg-a",
+    			"msg-b",
+    			"msg-c"
+    	);
+    	
+    	// Call the processAsyncFailSoft method to process the microservices.
+    	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
+    	String result = future.get(5, TimeUnit.SECONDS);
+    	
+    	// Assertions to compare result to expected value.
+    	assertFalse(result.contains("MSG-A"));
+    	assertTrue(result.contains("MSG-B"));
+    	assertFalse(result.contains("MSG-C"));
+    	assertEquals("MSG-B", result);
+    	System.out.println("[Fail-Partial] Multiple Microservice Failures - Test Successful: " + result + "\n");
+    }
+    
+    @Test
+    @DisplayName("[Fail-Partial] All Microservice Failures")
+    public void testProcessAsyncFailPartialAllFailure() throws ExecutionException, InterruptedException, TimeoutException {
+    	// Create a list of microservices to be processed.  All contain failures.
+    	List<Microservice> services = List.of(
+			new Microservice() {
+				// Override the successful microservice behaviour to return a failure instead.
+				@Override
+				public CompletableFuture<String> retrieveAsync(String input) {
+					return retrieveAsyncFail("Microservice A Failure");
+				}
+			},
+			new Microservice() {
+				// Override the successful microservice behaviour to return a failure instead.
+				@Override
+				public CompletableFuture<String> retrieveAsync(String input) {
+					return retrieveAsyncFail("Microservice B Failure");
+				}
+			},
+			new Microservice() {
+				// Override the successful microservice behaviour to return a failure instead.
+				@Override
+				public CompletableFuture<String> retrieveAsync(String input) {
+					return retrieveAsyncFail("Microservice C Failure");
+				}
+			}
+		);
+    	
+    	// Create of list of messages to be returned by the microservices.
+    	List<String> messages = List.of(
+    			"msg-a",
+    			"msg-b",
+    			"msg-c"
+    	);
+    	
+    	// Ensure that no exceptions are thrown to the caller.
+    	assertDoesNotThrow(() -> {
+	    	// Call the processAsyncFailSoft method to process the microservices.
+	    	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
+	    	String result = future.get(5, TimeUnit.SECONDS);
+	    	
+	    	// Assertions to compare result to expected value.
+	    	assertFalse(result.contains("MSG-A"));
+	    	assertFalse(result.contains("MSG-B"));
+	    	assertFalse(result.contains("MSG-C"));
+	    	assertEquals(0, result.length());
+	    	assertTrue(result.isEmpty());
+	    	System.out.println("[Fail-Partial] All Microservice Failures - Test Successful: N/A\n");
+    	});
+    }
+    
+    @Test
+	@DisplayName("[Fail-Partial] Size Mismatch Between Services and Messages")
+	public void testProcessAsyncFailPartialSizeMismatch() throws ExecutionException, InterruptedException, TimeoutException {
+		// Create a list of microservices to be processed.
+    	List<Microservice> services = List.of(
+    		new Microservice(),
+    		new Microservice(),
+    		new Microservice()
+    	);
+    	
+    	// Create a list of messages to be returned by the microservices, but with a size mismatch.
+    	List<String> messages = List.of(
+    			"msg-a",
+    			"msg-b"
+    	);
+    	
+    	// Call the processAsyncFailSoft method to process the microservices.
+    	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
+    	
+    	// Assertions to compare result to expected value.
+    	ExecutionException ex = assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
+    	assertTrue(ex.getCause() instanceof IllegalArgumentException);
+    	System.out.println("[Fail-Partial] Size Mismatch Between Services and Messages - Test Successful: " + ex.getCause().getMessage() + "\n");
+	}
     
     // Fail-Soft Policy Tests    
     @Test
@@ -389,6 +569,7 @@ public class AsyncProcessorTest {
     	// Assertions to compare result to expected value.
     	ExecutionException ex = assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
     	assertTrue(ex.getCause() instanceof IllegalArgumentException);
+    	System.out.println("[Fail-Soft] Size Mismatch Between Services and Messages - Test Successful: " + ex.getCause().getMessage() + "\n");
 	}
     
     // Liveness Tests
