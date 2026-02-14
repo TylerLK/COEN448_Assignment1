@@ -115,7 +115,7 @@ I would like to learn about the following concepts (In the Java programming lang
 
 **Tools:**
 
-- Junit5
+- JUnit 5
 
 **Audience:**
 
