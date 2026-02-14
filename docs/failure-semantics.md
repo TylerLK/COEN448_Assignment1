@@ -62,7 +62,7 @@ The fail-partial policy is suitable for scenarios where partial data is still hi
 
 ### 3.1 Definition
 
-As with the other policies, different tasks will be completed concurrently and asynchronously.  However, this policy will take a similar route to the fail-partial policy, in that the caller will receive no exceptions.  However, the fail-soft failure semantic policy will take failure-handling a step further.  It always allows the concurrent program to complete normally (*i.e., without throwing an exception*).  To achieve this behaviour, it will replace any failed microservice executions a by a dedicated, pre-defined fallback value.  As such, although some of the microservices have potentially failed during the program's operation, the caller will still receive the same number of results as there are microservices.
+As with the other policies, different tasks will be completed concurrently and asynchronously.  However, this policy will take a similar route to the fail-partial policy, in that the caller will receive no exceptions.  However, the fail-soft failure semantic policy will take failure-handling a step further.  It always allows the concurrent program to complete normally (*i.e., without throwing an exception*).  To achieve this behaviour, it will replace any failed microservice executions by a dedicated, pre-defined fallback value.  As such, although some of the microservices have potentially failed during the program's operation, the caller will still receive the same number of results as there are microservices.
 
 ### 3.2 Examples
 
