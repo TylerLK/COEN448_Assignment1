@@ -237,7 +237,7 @@ Tests help ensure the program is working as it should be.
 
 - `Java 9+` Libraries
 - `Java 8` Libraries
-- `JUnit5`
+- `JUnit 5`
 
 **Audience:**
 
