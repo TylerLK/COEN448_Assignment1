@@ -341,7 +341,6 @@ public class AsyncProcessorTest {
 	    	assertFalse(result.contains("MSG-A"));
 	    	assertFalse(result.contains("MSG-B"));
 	    	assertFalse(result.contains("MSG-C"));
-	    	assertEquals(0, result.length());
 	    	assertTrue(result.isEmpty());
 	    	System.out.println("[Fail-Partial] All Microservice Failures - Test Successful: N/A\n");
     	});
