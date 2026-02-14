@@ -48,7 +48,7 @@ public class AsyncProcessorTest {
     	assertTrue(result.contains("MSG-B"));
     	assertTrue(result.contains("MSG-C"));
     	assertEquals("MSG-A, MSG-B, MSG-C", result);
-    	System.out.println("[Fail-Soft] Policy Test Successful: " + result + "\n");
+    	System.out.println("[Fail-Fast] All Microservices are Successful - Test Successful: " + result + "\n");
     }
 	
 	@Test
@@ -81,7 +81,7 @@ public class AsyncProcessorTest {
     	ExecutionException ex = assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
     	assertTrue(ex.getCause() instanceof RuntimeException);
     	assertTrue(ex.getCause().getMessage().contains("Microservice B Failure"));
-    	System.out.println("[Fail-Soft] Policy Test Successful: " + ex.getCause().getMessage() + "\n");
+    	System.out.println("[Fail-Fast] Single Microservice Failure - Test Successful: " + ex.getCause().getMessage() + "\n");
     }
 	
 	@Test
@@ -121,7 +121,54 @@ public class AsyncProcessorTest {
     	assertTrue(ex.getCause() instanceof RuntimeException);
     	assertTrue(ex.getCause().getMessage().contains("Microservice A Failure"));
     	assertFalse(ex.getCause().getMessage().contains("Microservice C Failure"));
-    	System.out.println("[Fail-Soft] Policy Test Successful: " + ex.getCause().getMessage() + "\n");
+    	System.out.println("[Fail-Fast] Multiple Microservice Failures - Test Successful: " + ex.getCause().getMessage() + "\n");
+    }
+	
+	 @Test
+    @DisplayName("[Fail-Fast] All Microservice Failures")
+    public void testProcessAsyncFailFastAllFailure() throws ExecutionException, InterruptedException, TimeoutException {
+    	// Create a list of microservices to be processed.  All contain failures.
+    	List<Microservice> services = List.of(
+			new Microservice() {
+				// Override the successful microservice behaviour to return a failure instead.
+				@Override
+				public CompletableFuture<String> retrieveAsync(String input) {
+					return retrieveAsyncFail("Microservice A Failure");
+				}
+			},
+			new Microservice() {
+				// Override the successful microservice behaviour to return a failure instead.
+				@Override
+				public CompletableFuture<String> retrieveAsync(String input) {
+					return retrieveAsyncFail("Microservice B Failure");
+				}
+			},
+			new Microservice() {
+				// Override the successful microservice behaviour to return a failure instead.
+				@Override
+				public CompletableFuture<String> retrieveAsync(String input) {
+					return retrieveAsyncFail("Microservice C Failure");
+				}
+			}
+		);
+    	
+    	// Create of list of messages to be returned by the microservices.
+    	List<String> messages = List.of(
+    			"msg-a",
+    			"msg-b",
+    			"msg-c"
+    	);
+    	
+    	// Call the processAsyncFailFast method to process the microservices.
+    	CompletableFuture<String> future = processor.processAsyncFailFast(services, messages);
+    	
+    	// Assertions to compared result to expected value.
+    	ExecutionException ex = assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
+    	assertTrue(ex.getCause() instanceof RuntimeException);
+    	assertTrue(ex.getCause().getMessage().contains("Microservice A Failure"));
+    	assertFalse(ex.getCause().getMessage().contains("Microservice B Failure"));
+    	assertFalse(ex.getCause().getMessage().contains("Microservice C Failure"));
+    	System.out.println("[Fail-Fast] All Microservice Failures - Test Successful: " + ex.getCause().getMessage() + "\n");
     }
 	
 	@Test
@@ -181,7 +228,7 @@ public class AsyncProcessorTest {
     	assertTrue(result.contains("MSG-B"));
     	assertTrue(result.contains("MSG-C"));
     	assertEquals("MSG-A, MSG-B, MSG-C", result);
-    	System.out.println("[Fail-Soft] Policy Test Successful: " + result + "\n");
+    	System.out.println("[Fail-Soft] All Microservices are Successful - Test Successful: " + result + "\n");
     }
     
     @Test
@@ -220,7 +267,7 @@ public class AsyncProcessorTest {
     	assertFalse(result.contains("MSG-B"));
     	assertTrue(result.contains("MSG-C"));
     	assertEquals("MSG-A, FALLBACK, MSG-C", result);
-    	System.out.println("[Fail-Soft] Policy Test Successful: " + result + "\n");
+    	System.out.println("[Fail-Soft] Single Microservice Failure - Test Successful: " + result + "\n");
     }
     
     @Test
@@ -265,7 +312,7 @@ public class AsyncProcessorTest {
     	assertTrue(result.contains("MSG-B"));
     	assertFalse(result.contains("MSG-C"));
     	assertEquals("FALLBACK, MSG-B, FALLBACK", result);
-    	System.out.println("[Fail-Soft] Policy Test Successful: " + result + "\n");
+    	System.out.println("[Fail-Soft] Multiple Microservice Failures - Test Successful: " + result + "\n");
     }
     
     @Test
@@ -318,7 +365,7 @@ public class AsyncProcessorTest {
 	    	assertFalse(result.contains("MSG-B"));
 	    	assertFalse(result.contains("MSG-C"));
 	    	assertEquals("FALLBACK, FALLBACK, FALLBACK", result);
-	    	System.out.println("[Fail-Soft] Policy Test Successful: " + result + "\n");
+	    	System.out.println("[Fail-Soft] All Microservice Failures - Test Successful: " + result + "\n");
     	});
     }
     
@@ -367,7 +414,7 @@ public class AsyncProcessorTest {
     	// Assert
     	assertNotNull(thrown.getCause());
     	assertTrue(thrown.getCause().getMessage().contains("Synthetic failure"), "Fail-Fast should expose failure cause.");
-    	System.out.println("[Liveness][Fail-Fast] Failed quickly within timeout. Cause: " + thrown.getCause().getMessage() + "\n");
+    	System.out.println("\n[Liveness][Fail-Fast] Failed quickly within timeout. Cause: " + thrown.getCause().getMessage() + "\n");
     }
     
     @Test
@@ -387,7 +434,7 @@ public class AsyncProcessorTest {
     	assertEquals(serviceCount - 3, tokens.size(), "Fail-Partial must return only successful responses.");
     	assertFalse(tokens.contains("FALLBACK"), "Fail-Partial must not inject fallback values.");
     	assertTrue(tokens.stream().allMatch(token -> token.startsWith("MSG-")), "Fail-Partial output should contain only successful uppercased messages.");
-    	System.out.println("[Liveness][Fail-Partial] Completed within timeout. Result count: " + tokens.size() + "\n");
+    	System.out.println("\n[Liveness][Fail-Partial] Completed within timeout. Result count: " + tokens.size() + "\n");
     }
     
     @Test
@@ -408,7 +455,7 @@ public class AsyncProcessorTest {
     	assertEquals(serviceCount, tokens.size(), "Fail-Soft must always preserve cardinality.");
     	assertEquals(2, tokens.stream().filter(fallbackValue::equals).count(), "Fail-Soft must replace failures with fallback.");
     	assertEquals(10, tokens.stream().filter(token -> token.startsWith("MSG-")).count(), "Fail-Soft must keep successful responses.");
-    	System.out.println("[Liveness][Fail-Soft] Completed within timeout. Result: " + result + "\n");
+    	System.out.println("\n[Liveness][Fail-Soft] Completed within timeout. Result: " + result + "\n");
     }
     
     // Nondeterminism Tests 
@@ -429,7 +476,7 @@ public class AsyncProcessorTest {
     	// Assert
     	assertEquals(serviceCount, completionOrder.size(), "All microservices should be observed as completed.");
     	assertEquals(serviceCount, splitResults(result).size(), "Fail-Soft still preserves cardinality.");
-    	System.out.println("[Nondeterminism] Input order     : " + messages);
+    	System.out.println("\n[Nondeterminism] Input order     : " + messages);
     	System.out.println("[Nondeterminism] Completion order: " + completionOrder);
     	System.out.println("[Nondeterminism] Aggregated result: " + result + "\n");
     }
