@@ -130,7 +130,7 @@ I would like to learn about the following concepts (In the Java programming lang
 #### Liveness and Nondeterminism Test Generation (*Codex*)
 
 **Context:**
-We are doing an assignment that covers the importance of the implementation of explicit exception handling policies in MicroServices for concurrent execution. Specifically, we are covering the cases: Fail-Fast, Fail-Partial, and Fail-Soft.
+We are doing an assignment that covers the importance of the implementation of explicit exception handling policies in Microservices for concurrent execution. Specifically, we are covering the cases: Fail-Fast, Fail-Partial, and Fail-Soft.
 
 We have the code written in Java and have written specific tests for each of the cases. Now, we want to test for liveness and nondeterminism.
 
