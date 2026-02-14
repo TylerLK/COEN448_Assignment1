@@ -1,7 +1,5 @@
 # Asynchronous Concurrency Failure Semantics
 
----
-
 ## 1. Fail-Fast Policy
 
 ### 1.1 Definition
