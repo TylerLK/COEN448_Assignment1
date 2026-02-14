@@ -243,7 +243,7 @@ public class AsyncProcessorTest {
     			"msg-c"
     	);
     	
-    	// Call the processAsyncFailSoft method to process the microservices.
+    	// Call the processAsyncFailPartial method to process the microservices.
     	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
     	String result = future.get(5, TimeUnit.SECONDS);
     	
