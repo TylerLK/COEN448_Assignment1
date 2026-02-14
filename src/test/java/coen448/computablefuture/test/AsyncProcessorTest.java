@@ -208,7 +208,7 @@ public class AsyncProcessorTest {
     			"msg-c"
     	);
     	
-    	// Call the processAsyncFailSoft method to process the microservices.
+    	// Call the processAsyncFailPartial method to process the microservices.
     	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
     	String result = future.get(5, TimeUnit.SECONDS);
     	
@@ -243,7 +243,7 @@ public class AsyncProcessorTest {
     			"msg-c"
     	);
     	
-    	// Call the processAsyncFailSoft method to process the microservices.
+    	// Call the processAsyncFailPartial method to process the microservices.
     	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
     	String result = future.get(5, TimeUnit.SECONDS);
     	
@@ -277,14 +277,14 @@ public class AsyncProcessorTest {
 			}
 		);
     	
-    	// Create of list of messages to be returned by the microservices.
+    	// Create a list of messages to be returned by the microservices.
     	List<String> messages = List.of(
     			"msg-a",
     			"msg-b",
     			"msg-c"
     	);
     	
-    	// Call the processAsyncFailSoft method to process the microservices.
+    	// Call the processAsyncFailPartial method to process the microservices.
     	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
     	String result = future.get(5, TimeUnit.SECONDS);
     	
@@ -324,7 +324,7 @@ public class AsyncProcessorTest {
 			}
 		);
     	
-    	// Create of list of messages to be returned by the microservices.
+    	// Create a list of messages to be returned by the microservices.
     	List<String> messages = List.of(
     			"msg-a",
     			"msg-b",
@@ -333,7 +333,7 @@ public class AsyncProcessorTest {
     	
     	// Ensure that no exceptions are thrown to the caller.
     	assertDoesNotThrow(() -> {
-	    	// Call the processAsyncFailSoft method to process the microservices.
+	    	// Call the processAsyncFailPartial method to process the microservices.
 	    	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
 	    	String result = future.get(5, TimeUnit.SECONDS);
 	    	
@@ -341,7 +341,6 @@ public class AsyncProcessorTest {
 	    	assertFalse(result.contains("MSG-A"));
 	    	assertFalse(result.contains("MSG-B"));
 	    	assertFalse(result.contains("MSG-C"));
-	    	assertEquals(0, result.length());
 	    	assertTrue(result.isEmpty());
 	    	System.out.println("[Fail-Partial] All Microservice Failures - Test Successful: N/A\n");
     	});
