@@ -136,9 +136,9 @@ We have the code written in Java and have written specific tests for each of the
 
 General Rules:
 
-– No `Mockito`
-– All futures must be awaited with timeouts
-– tests must verify policy semantics
+- No `Mockito`
+- All futures must be awaited with timeouts
+- Tests must verify policy semantics
 
 Strict Category Requirements:
 
