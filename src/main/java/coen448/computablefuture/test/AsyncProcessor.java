@@ -79,8 +79,7 @@ public class AsyncProcessor {
 		// Check if the number of messages received and number of microservices being processed match.
 		if (services.size() != messages.size()) {
 			return CompletableFuture.failedFuture(
-					new IllegalArgumentException(
-							"Number of messages received and microservices being processed do not match!"));
+					new IllegalArgumentException("Number of messages received and microservices being processed do not match!"));
 		}
 
 		// Print the number of microservices being processed.
