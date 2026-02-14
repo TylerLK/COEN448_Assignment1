@@ -331,19 +331,19 @@ public class AsyncProcessorTest {
     			"msg-c"
     	);
     	
-    	// Ensure that no exceptions are thrown to the caller.
-    	assertDoesNotThrow(() -> {
-	    	// Call the processAsyncFailPartial method to process the microservices.
-	    	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
-	    	String result = future.get(5, TimeUnit.SECONDS);
-	    	
-	    	// Assertions to compare result to expected value.
-	    	assertFalse(result.contains("MSG-A"));
-	    	assertFalse(result.contains("MSG-B"));
-	    	assertFalse(result.contains("MSG-C"));
-	    	assertTrue(result.isEmpty());
-	    	System.out.println("[Fail-Partial] All Microservice Failures - Test Successful: N/A\n");
-    	});
+    	// Call the processAsyncFailPartial method to process the microservices.
+    	CompletableFuture<String> future = processor.processAsyncFailPartial(services, messages);
+    	
+    	// Ensure that no exceptions are thrown to the caller when obtaining the result.
+    	String result = assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
+    	
+    	// Assertions to compare result to expected value.
+    	assertFalse(result.contains("MSG-A"));
+    	assertFalse(result.contains("MSG-B"));
+    	assertFalse(result.contains("MSG-C"));
+    	assertTrue(result.isEmpty());
+    	System.out.println("[Fail-Partial] All Microservice Failures - Test Successful: N/A\n");
+    
     }
     
     @Test
