@@ -8,69 +8,6 @@ import java.util.stream.Collectors;
 public class AsyncProcessor {
 	// Failure Semantic Policies
 	/**
-	 * Fail-Soft Policy <br>
-	 * All failures are replaced with a pre-defined fallback value. The computation
-	 * never fails.
-	 * @param services      List of Microservice objects to be processed.
-	 * @param messages      List of messages to be sent to the corresponding microservices.
-	 * @param fallbackValue The value the microservices should return if failure
-	 *                      occurs.
-	 * @return A CompletableFuture of type String that contains the concatenation of the
-	 *         messages returned by all the microservices.
-	 */
-	public CompletableFuture<String> processAsyncFailSoft(
-			List<Microservice> services, 
-			List<String> messages,
-			String fallbackValue) {
-
-		// Check if the number of messages received and number of microservices being processed match.
-		if (services.size() != messages.size()) {
-			return CompletableFuture.failedFuture(
-					new IllegalArgumentException(
-							"Number of messages received and microservices being processed do not match!"));
-		}
-
-		// Print the number of microservices being processed.
-		System.out.println("[Fail-Soft] Processing " + services.size() + " microservices...");
-
-		// Create a stream of the future microservice results.
-		List<CompletableFuture<String>> futures = new ArrayList<>();
-
-		// Loop through the received messages, adding them to the list of futures.
-		for (int i = 0; i < messages.size(); i++) {
-			Microservice service = services.get(i);
-			String message = messages.get(i);
-
-			// Add the future microservice result to the list of futures.
-			futures.add(
-					// If no failure has occurred, the microservice will return the message as expected.
-					service.retrieveAsync(message)
-							.exceptionally(ex -> {
-								// If a failure has occurred, print the error message and return the fallback value.
-								System.out.println("[Fail-Soft] Failure Detected: " + ex.getMessage());
-
-								return fallbackValue;
-							}));
-
-		}
-
-		// Create a barrier for all the microservices to reach using the allOf() method.
-		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-				.thenApply(v -> {
-					// Once all microservices have completed (successfully or with fallback values), notify the user.
-					System.out
-							.println("[Fail-Soft] All microservices completed (successfully or with fallback values).");
-
-					// Create a single CompletableFuture<String> containing the microservice results.
-					return futures.stream()
-							.map(CompletableFuture::join)
-							.collect(Collectors.joining(", "));
-				});
-	}
-	
-
-	// Fail-Fast Policy
-	/**
 	 * Fail-Fast Policy <br>
 	 * If any microservice fails, the entire computation fails immediately.
 	 * @param services List of Microservice objects to be processed.
@@ -85,8 +22,7 @@ public class AsyncProcessor {
 		// Check if the number of messages received and number of microservices being processed match.
 		if (services.size() != messages.size()) {
 			return CompletableFuture.failedFuture(
-					new IllegalArgumentException(
-							"Number of messages received and microservices being processed do not match!"));
+					new IllegalArgumentException("Number of messages received and microservices being processed do not match!"));
 		}
 
 		// Print the number of microservices being processed.
@@ -126,7 +62,6 @@ public class AsyncProcessor {
 		return resultFuture;
 	}
 
-	// Fail-Partial Policy
 	/**
 	 * Fail-Partial Policy <br>
 	 * All failures are ignored. The computation returns only the successful
@@ -144,8 +79,7 @@ public class AsyncProcessor {
 		// Check if the number of messages received and number of microservices being processed match.
 		if (services.size() != messages.size()) {
 			return CompletableFuture.failedFuture(
-					new IllegalArgumentException(
-							"Number of messages received and microservices being processed do not match!"));
+					new IllegalArgumentException("Number of messages received and microservices being processed do not match!"));
 		}
 
 		// Print the number of microservices being processed.
@@ -179,6 +113,65 @@ public class AsyncProcessor {
 					return futures.stream()
 							.map(CompletableFuture::join)
 							.filter(result -> result != null) // Filter out the nulls from failed services.
+							.collect(Collectors.joining(", "));
+				});
+	}
+	
+	/**
+	 * Fail-Soft Policy <br>
+	 * All failures are replaced with a pre-defined fallback value. The computation
+	 * never fails.
+	 * @param services      List of Microservice objects to be processed.
+	 * @param messages      List of messages to be sent to the corresponding microservices.
+	 * @param fallbackValue The value the microservices should return if failure
+	 *                      occurs.
+	 * @return A CompletableFuture of type String that contains the concatenation of the
+	 *         messages returned by all the microservices.
+	 */
+	public CompletableFuture<String> processAsyncFailSoft(
+			List<Microservice> services, 
+			List<String> messages,
+			String fallbackValue) {
+
+		// Check if the number of messages received and number of microservices being processed match.
+		if (services.size() != messages.size()) {
+			return CompletableFuture.failedFuture(
+					new IllegalArgumentException("Number of messages received and microservices being processed do not match!"));
+		}
+
+		// Print the number of microservices being processed.
+		System.out.println("[Fail-Soft] Processing " + services.size() + " microservices...");
+
+		// Create a stream of the future microservice results.
+		List<CompletableFuture<String>> futures = new ArrayList<>();
+
+		// Loop through the received messages, adding them to the list of futures.
+		for (int i = 0; i < messages.size(); i++) {
+			Microservice service = services.get(i);
+			String message = messages.get(i);
+
+			// Add the future microservice result to the list of futures.
+			futures.add(
+					// If no failure has occurred, the microservice will return the message as expected.
+					service.retrieveAsync(message)
+							.exceptionally(ex -> {
+								// If a failure has occurred, print the error message and return the fallback value.
+								System.out.println("[Fail-Soft] Failure Detected: " + ex.getMessage());
+								System.out.println("[Fail-Soft] WARNING: Failure masked with fallback value: " + fallbackValue);
+								return fallbackValue;
+							}));
+
+		}
+
+		// Create a barrier for all the microservices to reach using the allOf() method.
+		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+				.thenApply(v -> {
+					// Once all microservices have completed (successfully or with fallback values), notify the user.
+					System.out.println("[Fail-Soft] All microservices completed (successfully or with fallback values).");
+
+					// Create a single CompletableFuture<String> containing the microservice results.
+					return futures.stream()
+							.map(CompletableFuture::join)
 							.collect(Collectors.joining(", "));
 				});
 	}
