@@ -82,9 +82,7 @@ Test outputs and reports will be generated in `target/surefire-reports/`.
 
 ---
 
-## AI Usage
-
-AI Usage Claim
+## AI Usage Claim
 
 ### Tools Used
 
@@ -92,7 +90,7 @@ The primary tools used throughout the development and testing of this assignment
 
 ### Prompts
 
-#### Learning About Assignment Context (*ChatGPT*)
+#### Learning About Assignment Context (*ChatGPT 5.2*)
 
 **Context:**
 I would like to learn about the following concepts (In the Java programming language)
@@ -127,7 +125,7 @@ I would like to learn about the following concepts (In the Java programming lang
 
 ---
 
-#### Liveness and Nondeterminism Test Generation (*Codex*)
+#### Liveness and Nondeterminism Test Generation (*Codex 0.4.47*)
 
 **Context:**
 We are doing an assignment that covers the importance of the implementation of explicit exception handling policies in Microservices for concurrent execution. Specifically, we are covering the cases: Fail-Fast, Fail-Partial, and Fail-Soft.
@@ -169,7 +167,7 @@ Ensure that there are no duplicate tests. If any helper classes and/or methods a
 
 Tests help ensure the program is working as it should be.
 
-#### Failure Semantics Policy Review (*GitHub Copilot*)
+#### Failure Semantics Policy Review (*GitHub Copilot GPT-5.2*)
 
 **Context:**
 
@@ -211,7 +209,7 @@ Tests help ensure the program is working as it should be.
 - Fail-Partial: Handles failures per service.  Returns successful results only (*or clearly documented markers*).  No exception escapes to the caller.
 - Fail-Soft: Uses fallback values for failures.  Always completes normally.  Clearly documents the risks of masking failures.
 
-#### Failure Semantics Testing Review (*GitHub Copilot*)
+#### Failure Semantics Testing Review (*GitHub Copilot GPT-5.2*)
 
 **Context:**
 
