@@ -7,52 +7,51 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class AsyncProcessor {
-
-	/**
-	 * Teacher's base code for processAsync
-	 * Process the microservices in parallel and return the results in the same order
-	 * as the input {@code microservices} list.
-	 * @param microservices List of Microservice objects to be processed.
-	 * @param message Message to be sent to the corresponding microservices.
-	 * @return A CompletableFuture of type String that contains the space-separated
-	 *         concatenation of the messages returned by all the microservices, in the
-	 *         same order as the input {@code microservices} list.
-	 */
-	public CompletableFuture<String> processAsync(List<Microservice> microservices, String message) {
-    	
-        List<CompletableFuture<String>> futures = microservices.stream()
-            .map(client -> client.retrieveAsync(message))
-            .collect(Collectors.toList());
-        
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-            .thenApply(v -> futures.stream()
-                .map(CompletableFuture::join)
-                .collect(Collectors.joining(" ")));
-        
-    }
-    /**
-	 * Teacher's base code for processAsyncCompletionOrder
-	 * Process the microservices in parallel and return the results in the order they complete.
-	 * @param microservices List of Microservice objects to be processed.
-	 * @param message Message to be sent to the corresponding microservices.
-	 * @return A CompletableFuture of type List<String> that contains the messages returned by
-	 *         all the microservices, in the order in which the microservices complete.
-	 */
-    public CompletableFuture<List<String>> processAsyncCompletionOrder(
-            List<Microservice> microservices, String message) {
-
-        List<String> completionOrder =
-            Collections.synchronizedList(new ArrayList<>());
-
-        List<CompletableFuture<Void>> futures = microservices.stream()
-            .map(ms -> ms.retrieveAsync(message)
-                .thenAccept(completionOrder::add))
-            .collect(Collectors.toList());
-
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-            .thenApply(v -> completionOrder);
-    }
-
+	// Professor's Original Code (Kept as Reference)
+//	/**
+//	 * Teacher's base code for processAsync
+//	 * Process the microservices in parallel and return the results in the same order
+//	 * as the input {@code microservices} list.
+//	 * @param microservices List of Microservice objects to be processed.
+//	 * @param message Message to be sent to the corresponding microservices.
+//	 * @return A CompletableFuture of type String that contains the space-separated
+//	 *         concatenation of the messages returned by all the microservices, in the
+//	 *         same order as the input {@code microservices} list.
+//	 */
+//	public CompletableFuture<String> processAsync(List<Microservice> microservices, String message) {
+//    	
+//        List<CompletableFuture<String>> futures = microservices.stream()
+//            .map(client -> client.retrieveAsync(message))
+//            .collect(Collectors.toList());
+//        
+//        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+//            .thenApply(v -> futures.stream()
+//                .map(CompletableFuture::join)
+//                .collect(Collectors.joining(" ")));
+//        
+//    }
+//    /**
+//	 * Teacher's base code for processAsyncCompletionOrder
+//	 * Process the microservices in parallel and return the results in the order they complete.
+//	 * @param microservices List of Microservice objects to be processed.
+//	 * @param message Message to be sent to the corresponding microservices.
+//	 * @return A CompletableFuture of type List<String> that contains the messages returned by
+//	 *         all the microservices, in the order in which the microservices complete.
+//	 */
+//    public CompletableFuture<List<String>> processAsyncCompletionOrder(
+//            List<Microservice> microservices, String message) {
+//
+//        List<String> completionOrder =
+//            Collections.synchronizedList(new ArrayList<>());
+//
+//        List<CompletableFuture<Void>> futures = microservices.stream()
+//            .map(ms -> ms.retrieveAsync(message)
+//                .thenAccept(completionOrder::add))
+//            .collect(Collectors.toList());
+//
+//        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+//            .thenApply(v -> completionOrder);
+//    }
 
 	// Failure Semantic Policies
 	/**
