@@ -35,8 +35,8 @@ public class AsyncProcessor {
 	 * Process the microservices in parallel and return the results in the order they complete.
 	 * @param microservices List of Microservice objects to be processed.
 	 * @param message Message to be sent to the corresponding microservices.
-	 * @return A CompletableFuture of type List<String> that contains the concatenation of the
-	 *         messages returned by all the microservices in the order they complete.
+	 * @return A CompletableFuture of type List<String> that contains the messages returned by
+	 *         all the microservices, in the order in which the microservices complete.
 	 */
     public CompletableFuture<List<String>> processAsyncCompletionOrder(
             List<Microservice> microservices, String message) {
