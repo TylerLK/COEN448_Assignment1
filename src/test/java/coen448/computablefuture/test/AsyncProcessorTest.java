@@ -3,6 +3,9 @@ package coen448.computablefuture.test;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
@@ -20,6 +23,58 @@ public class AsyncProcessorTest {
 	void setUp() {
 		processor = new AsyncProcessor();
 	}
+
+	@ParameterizedTest
+    @CsvSource({
+        "hi, Hello:HI World:HI",
+        "cloud, Hello:CLOUD World:CLOUD",
+        "async, Hello:ASYNC World:ASYNC"
+    })
+    public void testProcessAsync_withDifferentMessages(
+            String message,
+            String expectedResult)
+            throws ExecutionException, InterruptedException, TimeoutException {
+
+        Microservice service1 = new Microservice("Hello");
+        Microservice service2 = new Microservice("World");
+
+        AsyncProcessor processor = new AsyncProcessor();
+
+        CompletableFuture<String> resultFuture =
+            processor.processAsync(List.of(service1, service2), message);
+
+        String result = resultFuture.get(1, TimeUnit.SECONDS);
+
+        assertEquals(expectedResult, result);
+        
+    }
+	
+	
+	@RepeatedTest(20)
+    void showNondeterminism_completionOrderVaries() throws Exception {
+
+        Microservice s1 = new Microservice("A");
+        Microservice s2 = new Microservice("B");
+        Microservice s3 = new Microservice("C");
+
+        AsyncProcessor processor = new AsyncProcessor();
+
+        List<String> order = processor
+            .processAsyncCompletionOrder(List.of(s1, s2, s3), "msg")
+            .get(1, TimeUnit.SECONDS);
+
+        // Not asserting a fixed order (because it is intentionally nondeterministic)
+        System.out.println(order);
+
+        // A minimal sanity check: all three must be present
+        assertEquals(3, order.size());
+   
+        assertTrue(order.stream().anyMatch(x -> x.startsWith("A:")));
+        assertTrue(order.stream().anyMatch(x -> x.startsWith("B:")));
+        assertTrue(order.stream().anyMatch(x -> x.startsWith("C:")));
+    }
+
+	
 	
 	// Fail-Fast Policy Tests
 	@Test
@@ -27,9 +82,9 @@ public class AsyncProcessorTest {
     public void testProcessAsyncFailFastAllSuccess() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.
     	List<Microservice> services = List.of(
-    		new Microservice(),
-    		new Microservice(),
-    		new Microservice()
+    		new Microservice("svc"),
+    		new Microservice("svc"),
+    		new Microservice("svc")
     	);
     	
     	// Create a list of messages to be returned by the microservices.
@@ -47,7 +102,7 @@ public class AsyncProcessorTest {
     	assertTrue(result.contains("MSG-A"));
     	assertTrue(result.contains("MSG-B"));
     	assertTrue(result.contains("MSG-C"));
-    	assertEquals("MSG-A, MSG-B, MSG-C", result);
+    	assertEquals("svc:MSG-A, svc:MSG-B, svc:MSG-C", result);
     	System.out.println("[Fail-Fast] All Microservices are Successful - Test Successful: " + result + "\n");
     }
 	
@@ -56,15 +111,15 @@ public class AsyncProcessorTest {
     public void testProcessAsyncFailFastSingleFailure() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.  One will contain a failure.
     	List<Microservice> services = List.of(
-			new Microservice(),
-			new Microservice() {
+			new Microservice("svc"),
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
 					return retrieveAsyncFail("Microservice B Failure");
 				}
 			},
-			new Microservice()
+			new Microservice("svc")
 		);
     	
     	// Create a list of messages to be returned by the microservices.
@@ -88,15 +143,15 @@ public class AsyncProcessorTest {
     public void testProcessAsyncFailFastMultipleFailure() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.  Multiple will contain failures.
     	List<Microservice> services = List.of(
-			new Microservice() {
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
 					return retrieveAsyncFail("Microservice A Failure");
 				}
 			},
-			new Microservice(),
-			new Microservice() {
+			new Microservice("svc"),
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
@@ -126,21 +181,21 @@ public class AsyncProcessorTest {
     public void testProcessAsyncFailFastAllFailure() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.  All contain failures.
     	List<Microservice> services = List.of(
-			new Microservice() {
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
 					return retrieveAsyncFail("Microservice A Failure");
 				}
 			},
-			new Microservice() {
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
 					return retrieveAsyncFail("Microservice B Failure");
 				}
 			},
-			new Microservice() {
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
@@ -170,9 +225,9 @@ public class AsyncProcessorTest {
 	public void testProcessAsyncFailFastSizeMismatch() throws ExecutionException, InterruptedException, TimeoutException {
 		// Create a list of microservices to be processed.
     	List<Microservice> services = List.of(
-    		new Microservice(),
-    		new Microservice(),
-    		new Microservice()
+    		new Microservice("svc"),
+    		new Microservice("svc"),
+    		new Microservice("svc")
     	);
     	
     	// Create a list of messages to be returned by the microservices, but with a size mismatch.
@@ -196,9 +251,9 @@ public class AsyncProcessorTest {
     public void testProcessAsyncFailPartialAllSuccess() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.
     	List<Microservice> services = List.of(
-    		new Microservice(),
-    		new Microservice(),
-    		new Microservice()
+    		new Microservice("svc"),
+    		new Microservice("svc"),
+    		new Microservice("svc")
     	);
     	
     	// Create a list of messages to be returned by the microservices.
@@ -216,7 +271,7 @@ public class AsyncProcessorTest {
     	assertTrue(result.contains("MSG-A"));
     	assertTrue(result.contains("MSG-B"));
     	assertTrue(result.contains("MSG-C"));
-    	assertEquals("MSG-A, MSG-B, MSG-C", result);
+    	assertEquals("svc:MSG-A, svc:MSG-B, svc:MSG-C", result);
     	System.out.println("[Fail-Partial] All Microservices are Successful - Test Successful: " + result + "\n");
     }
     
@@ -225,15 +280,15 @@ public class AsyncProcessorTest {
     public void testProcessAsyncFailPartialSingleFailure() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.  One will contain a failure.
     	List<Microservice> services = List.of(
-			new Microservice(),
-			new Microservice() {
+			new Microservice("svc"),
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
 					return retrieveAsyncFail("Microservice B Failure");
 				}
 			},
-			new Microservice()
+			new Microservice("svc")
 		);
     	
     	// Create a list of messages to be returned by the microservices.
@@ -251,7 +306,7 @@ public class AsyncProcessorTest {
     	assertTrue(result.contains("MSG-A"));
     	assertFalse(result.contains("MSG-B"));
     	assertTrue(result.contains("MSG-C"));
-    	assertEquals("MSG-A, MSG-C", result);
+    	assertEquals("svc:MSG-A, svc:MSG-C", result);
     	System.out.println("[Fail-Partial] Single Microservice Failure - Test Successful: " + result + "\n");
     }
     
@@ -260,15 +315,15 @@ public class AsyncProcessorTest {
     public void testProcessAsyncFailPartialMultipleFailure() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.  Multiple will contain failures.
     	List<Microservice> services = List.of(
-			new Microservice() {
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
 					return retrieveAsyncFail("Microservice A Failure");
 				}
 			},
-			new Microservice(),
-			new Microservice() {
+			new Microservice("svc"),
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
@@ -292,7 +347,7 @@ public class AsyncProcessorTest {
     	assertFalse(result.contains("MSG-A"));
     	assertTrue(result.contains("MSG-B"));
     	assertFalse(result.contains("MSG-C"));
-    	assertEquals("MSG-B", result);
+    	assertEquals("svc:MSG-B", result);
     	System.out.println("[Fail-Partial] Multiple Microservice Failures - Test Successful: " + result + "\n");
     }
     
@@ -301,21 +356,21 @@ public class AsyncProcessorTest {
     public void testProcessAsyncFailPartialAllFailure() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.  All contain failures.
     	List<Microservice> services = List.of(
-			new Microservice() {
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
 					return retrieveAsyncFail("Microservice A Failure");
 				}
 			},
-			new Microservice() {
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
 					return retrieveAsyncFail("Microservice B Failure");
 				}
 			},
-			new Microservice() {
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
@@ -351,9 +406,9 @@ public class AsyncProcessorTest {
 	public void testProcessAsyncFailPartialSizeMismatch() throws ExecutionException, InterruptedException, TimeoutException {
 		// Create a list of microservices to be processed.
     	List<Microservice> services = List.of(
-    		new Microservice(),
-    		new Microservice(),
-    		new Microservice()
+    		new Microservice("svc"),
+    		new Microservice("svc"),
+    		new Microservice("svc")
     	);
     	
     	// Create a list of messages to be returned by the microservices, but with a size mismatch.
@@ -377,9 +432,9 @@ public class AsyncProcessorTest {
     public void testProcessAsyncFailSoftAllSuccess() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.
     	List<Microservice> services = List.of(
-    		new Microservice(),
-    		new Microservice(),
-    		new Microservice()
+    		new Microservice("svc"),
+    		new Microservice("svc"),
+    		new Microservice("svc")
     	);
     	
     	// Create a list of messages to be returned by the microservices.
@@ -401,7 +456,7 @@ public class AsyncProcessorTest {
     	assertTrue(result.contains("MSG-A"));
     	assertTrue(result.contains("MSG-B"));
     	assertTrue(result.contains("MSG-C"));
-    	assertEquals("MSG-A, MSG-B, MSG-C", result);
+    	assertEquals("svc:MSG-A, svc:MSG-B, svc:MSG-C", result);
     	System.out.println("[Fail-Soft] All Microservices are Successful - Test Successful: " + result + "\n");
     }
     
@@ -410,15 +465,15 @@ public class AsyncProcessorTest {
     public void testProcessAsyncFailSoftSingleFailure() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.  One will contain a failure.
     	List<Microservice> services = List.of(
-			new Microservice(),
-			new Microservice() {
+			new Microservice("svc"),
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
 					return retrieveAsyncFail("Microservice B Failure");
 				}
 			},
-			new Microservice()
+			new Microservice("svc")
 		);
     	
     	// Create a list of messages to be returned by the microservices.
@@ -440,7 +495,7 @@ public class AsyncProcessorTest {
     	assertTrue(result.contains("MSG-A"));
     	assertFalse(result.contains("MSG-B"));
     	assertTrue(result.contains("MSG-C"));
-    	assertEquals("MSG-A, FALLBACK, MSG-C", result);
+    	assertEquals("svc:MSG-A, FALLBACK, svc:MSG-C", result);
     	System.out.println("[Fail-Soft] Single Microservice Failure - Test Successful: " + result + "\n");
     }
     
@@ -449,15 +504,15 @@ public class AsyncProcessorTest {
     public void testProcessAsyncFailSoftMultipleFailure() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.  Multiple will contain failures.
     	List<Microservice> services = List.of(
-			new Microservice() {
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
 					return retrieveAsyncFail("Microservice A Failure");
 				}
 			},
-			new Microservice(),
-			new Microservice() {
+			new Microservice("svc"),
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
@@ -485,7 +540,7 @@ public class AsyncProcessorTest {
     	assertFalse(result.contains("MSG-A"));
     	assertTrue(result.contains("MSG-B"));
     	assertFalse(result.contains("MSG-C"));
-    	assertEquals("FALLBACK, MSG-B, FALLBACK", result);
+    	assertEquals("FALLBACK, svc:MSG-B, FALLBACK", result);
     	System.out.println("[Fail-Soft] Multiple Microservice Failures - Test Successful: " + result + "\n");
     }
     
@@ -494,21 +549,21 @@ public class AsyncProcessorTest {
     public void testProcessAsyncFailSoftAllFailure() throws ExecutionException, InterruptedException, TimeoutException {
     	// Create a list of microservices to be processed.  All contain failures.
     	List<Microservice> services = List.of(
-			new Microservice() {
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
 					return retrieveAsyncFail("Microservice A Failure");
 				}
 			},
-			new Microservice() {
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
 					return retrieveAsyncFail("Microservice B Failure");
 				}
 			},
-			new Microservice() {
+			new Microservice("svc") {
 				// Override the successful microservice behaviour to return a failure instead.
 				@Override
 				public CompletableFuture<String> retrieveAsync(String input) {
@@ -548,9 +603,9 @@ public class AsyncProcessorTest {
 	public void testProcessAsyncFailSoftSizeMismatch() throws ExecutionException, InterruptedException, TimeoutException {
 		// Create a list of microservices to be processed.
     	List<Microservice> services = List.of(
-    		new Microservice(),
-    		new Microservice(),
-    		new Microservice()
+    		new Microservice("svc"),
+    		new Microservice("svc"),
+    		new Microservice("svc")
     	);
     	
     	// Create a list of messages to be returned by the microservices, but with a size mismatch.
@@ -725,6 +780,7 @@ public class AsyncProcessorTest {
     	 * @param completionOrder optional thread-safe completion-order sink.
     	 */
     	ControlledDelayMicroservice(String serviceId, long delayMs, boolean shouldFail, List<String> completionOrder) {
+    		super(serviceId);
     		this.serviceId = serviceId;
     		this.delayMs = delayMs;
     		this.shouldFail = shouldFail;
