@@ -10,11 +10,13 @@ public class AsyncProcessor {
 
 	/**
 	 * Teacher's base code for processAsync
-	 * Process the microservices in parallel and return the results in the order they are received.
+	 * Process the microservices in parallel and return the results in the same order
+	 * as the input {@code microservices} list.
 	 * @param microservices List of Microservice objects to be processed.
 	 * @param message Message to be sent to the corresponding microservices.
-	 * @return A CompletableFuture of type String that contains the concatenation of the
-	 *         messages returned by all the microservices.
+	 * @return A CompletableFuture of type String that contains the space-separated
+	 *         concatenation of the messages returned by all the microservices, in the
+	 *         same order as the input {@code microservices} list.
 	 */
 	public CompletableFuture<String> processAsync(List<Microservice> microservices, String message) {
     	
